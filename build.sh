@@ -1,0 +1,22 @@
+#!/bin/sh
+
+targetARCH=amd64
+cmd=chat-server
+repository=rhzx3519/$cmd
+workdir=build
+
+isdocker=$1
+arch=${2:-amd64}
+os=${3:-linux}
+
+GOOS=$os GOARCH=$targetARCH go build -o bin/$cmd main/main.go
+
+cp .env $workdir
+cp ./bin/$cmd $workdir
+cp Dockerfile $workdir
+if [ $isdocker ]; then
+  cp .env-docker $workdir/.env
+fi
+cd $workdir
+
+docker build --platform=$os/$arch  -t ${repository}:latest .

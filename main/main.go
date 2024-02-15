@@ -1,6 +1,7 @@
 package main
 
 import (
+    "chat-server/domain"
     "fmt"
     "github.com/gin-gonic/gin"
     "github.com/gorilla/websocket"
@@ -10,7 +11,10 @@ import (
     "os"
 )
 
-var upgrader = websocket.Upgrader{}
+var (
+    upgrader       = websocket.Upgrader{}
+    connectionPool = domain.ConnectionPool{}
+)
 
 func init() {
     err := godotenv.Load()
@@ -40,6 +44,8 @@ func echo(ctx *gin.Context) {
         log.Println("upgrade:", err)
         return
     }
+    fmt.Printf("Auth-User-No: %s", ctx.GetHeader("Auth-User-No"))
+
     defer c.Close()
     for {
         mt, message, err := c.ReadMessage()

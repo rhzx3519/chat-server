@@ -36,7 +36,7 @@ func main() {
     dialer := *websocket.DefaultDialer
     dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
     h := http.Header{}
-    h.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImV4cCI6MTcwODA3Nzg0NH0.bCn5hjttlviwfLurLm_m80eOUYRaOqybzKZEDyIbr_A")
+    h.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImV4cCI6MTcwODEwMjg1Miwibm8iOiI1MzQ5NTZkZS03OGFmLTQ0YjUtYmRmMS00NWFhNTA5NDg2MTgifQ.Kl6vcpDiELIdy4B8Dyt96ZfmjQsNh8hn2t27KAzFgLw")
 
     c, _, err := dialer.Dial(u.String(), h)
     if err != nil {

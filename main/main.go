@@ -44,7 +44,9 @@ func echo(ctx *gin.Context) {
         log.Println("upgrade:", err)
         return
     }
-    fmt.Printf("Auth-User-No: %s", ctx.GetHeader("Auth-User-No"))
+    for k, v := range ctx.Request.Header {
+        fmt.Println(k, v)
+    }
 
     defer c.Close()
     for {

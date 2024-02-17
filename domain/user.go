@@ -1,20 +1,56 @@
 package domain
 
-import "github.com/gorilla/websocket"
+import (
+    "chat-server/persistence"
+    "context"
+    "errors"
+    "go.mongodb.org/mongo-driver/bson"
+    "go.mongodb.org/mongo-driver/mongo"
+    "time"
+)
+
+const (
+    collectionName = "Users"
+)
 
 type User struct {
-    Id   int64           `json:"id"`
-    Conn *websocket.Conn `json:"conn"`
+    No       string `json:"no" bson:"no"`
+    Email    string `json:"email" bson:"email"`
+    Nickname string `json:"nickname" bson:"nickname"`
+    Presence bool   `json:"presence" bson:"presence"`
 }
 
 type Channel struct {
-    Id          int64   `json:"id"`
-    Subscribers []int64 `json:"subscribers"`
+    Id          string   `json:"id" bson:"id"`
+    Subscribers []string `json:"subscribers" bson:"subscribers"`
 }
 
 type InBox struct {
-    UserId   int64      `json:"userId"`
-    Messages []*Message `json:"messages"`
+    UserNo   string     `json:"userNo" bson:"userNo"`
+    Messages []*Message `json:"messages" bson:"messages"`
 }
 
-type ConnectionPool map[int64]*websocket.Conn
+func HeartBeat(userNo string) (err error) {
+    coll := persistence.Database().Collection(collectionName)
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    filter := bson.D{{"no", userNo}}
+    var u User
+    err = coll.FindOne(ctx, filter).Decode(&u)
+    if errors.Is(err, mongo.ErrNoDocuments) {
+        _, err = coll.InsertOne(ctx, bson.D{
+            {"no", userNo},
+            {"presence", true},
+        })
+        return err
+    } else if err != nil {
+        return err
+    }
+    _, err = coll.UpdateOne(ctx, filter, bson.D{
+        {
+            "$set", bson.D{{"presence", false}},
+        },
+    })
+
+    return
+}

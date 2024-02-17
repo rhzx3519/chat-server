@@ -1,34 +1,40 @@
 package domain
 
+import (
+    "chat-server/domain/serialnumber"
+    "fmt"
+    "time"
+)
+
 type MessageType int
 
 const (
-    INDIVIDUAL MessageType = iota
-    CHANNEL
+    PRIVATE MessageType = iota
+    GROUP
 )
 
-type Message interface {
-    Type() MessageType
+type Message struct {
+    SerialNo    int64       `json:"serialNo" bson:"serialNo"`
+    From        string      `json:"from" bson:"from"`
+    To          string      `json:"to" bson:"to"`
+    Content     string      `json:"content" bson:"content"`
+    CreatedAt   int64       `json:"createdAt" bson:"createdAt"`
+    IsRead      bool        `json:"isRead" bson:"isRead"`
+    MessageType MessageType `json:"messageType" bson:"messageType"`
 }
 
-type IndividualMessage struct {
-    Id        int64  `json:"id"`
-    From      int64  `json:"from"`
-    To        int64  `json:"to"`
-    Content   string `json:"content"`
-    CreatedAt int64  `json:"createdAt"`
-    IsRead    bool   `json:"isRead"`
-}
-
-func (m *IndividualMessage) Type() MessageType {
-    return INDIVIDUAL
-}
-
-type ChannelMessage struct {
-    ChannelId int64 `json:"channelId"`
-    Message
-}
-
-func (m *ChannelMessage) Type() MessageType {
-    return CHANNEL
+func NewMessage(from, to string, content string) *Message {
+    serialNo, err := serialnumber.NextSerialNo(from, to)
+    if err != nil {
+        fmt.Println(err)
+    }
+    return &Message{
+        SerialNo:    serialNo,
+        From:        from,
+        To:          to,
+        Content:     content,
+        CreatedAt:   time.Now().Unix(),
+        IsRead:      false,
+        MessageType: GROUP,
+    }
 }

@@ -1,7 +1,10 @@
 package main
 
 import (
-    "chat-server/domain"
+    "chat-server/chat"
+    "chat-server/controller"
+    "chat-server/domain/connectionpool"
+    "chat-server/persistence"
     "fmt"
     "github.com/gin-gonic/gin"
     "github.com/gorilla/websocket"
@@ -9,11 +12,12 @@ import (
     "log"
     "net/http"
     "os"
+    "time"
 )
 
 var (
     upgrader       = websocket.Upgrader{}
-    connectionPool = domain.ConnectionPool{}
+    connectionPool = connectionpool.ConnectionPool{}
 )
 
 func init() {
@@ -37,47 +41,36 @@ func corsHeader(c *gin.Context) {
     }
 }
 
-func echo(ctx *gin.Context) {
-    w, r := ctx.Writer, ctx.Request
-    c, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-        log.Println("upgrade:", err)
-        return
-    }
-    for k, v := range ctx.Request.Header {
-        fmt.Println(k, v)
-    }
-
-    defer c.Close()
-    for {
-        mt, message, err := c.ReadMessage()
-        if err != nil {
-            log.Println("read:", err)
-            break
-        }
-        log.Printf("recv:%s", message)
-        err = c.WriteMessage(mt, message)
-        if err != nil {
-            log.Println("write:", err)
-            break
-        }
-    }
-}
-
 func main() {
+    persistence.InitMongoDB()
+    defer func() {
+        persistence.PostMongoDB()
+    }()
+
+    hub := chat.NewHub()
+    go hub.Run()
+
     r := gin.Default()
     r.Use(corsHeader)
 
-    ws := r.Group("/ws")
-    v1 := ws.Group("/v1")
+    v1 := r.Group("/v1")
+    ws := v1.Group("/ws")
+    {
+        ws.GET("/chat", func(c *gin.Context) {
+            controller.ServeWs(hub, c)
+        })
+    }
+
     {
         v1.GET("/ping", func(c *gin.Context) {
+            go func() {
+                time.Sleep(time.Second * 10)
+                fmt.Println("subroutine end...")
+            }()
             c.JSON(http.StatusOK, gin.H{
                 "message": "pong",
             })
         })
-
-        v1.GET("/echo", echo)
     }
 
     port := fmt.Sprintf(":%v", os.Getenv("PORT"))

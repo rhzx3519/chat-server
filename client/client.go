@@ -3,6 +3,7 @@ package main
 import (
     "crypto/tls"
     "flag"
+    "fmt"
     "github.com/gorilla/websocket"
     "github.com/joho/godotenv"
     "log"
@@ -27,10 +28,10 @@ func main() {
     interrupt := make(chan os.Signal, 1)
     signal.Notify(interrupt, os.Interrupt)
 
-    host := "ec2-3-27-86-30.ap-southeast-2.compute.amazonaws.com:443"
-    //host := fmt.Sprintf("127.0.0.1:%v", os.Getenv("PORT"))
+    //host := "ec2-3-27-86-30.ap-southeast-2.compute.amazonaws.com:443"
+    host := fmt.Sprintf("127.0.0.1:%v", os.Getenv("PORT"))
     var addr = flag.String("addr", host, "http service address")
-    u := url.URL{Scheme: "wss", Host: *addr, Path: "/api/chat/ws/v1/echo"}
+    u := url.URL{Scheme: "ws", Host: *addr, Path: "v1/ws/chat"}
     log.Printf("connecting to %s", u.String())
 
     dialer := *websocket.DefaultDialer
@@ -58,7 +59,7 @@ func main() {
         }
     }()
 
-    ticker := time.NewTicker(time.Second)
+    ticker := time.NewTicker(time.Second * 30)
     defer ticker.Stop()
 
     for {

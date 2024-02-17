@@ -1,7 +1,7 @@
 package handler
 
 import (
-    "chat-server/domain"
+    "chat-server/domain/user"
     "github.com/gin-gonic/gin"
     "github.com/gorilla/websocket"
     "log"
@@ -9,7 +9,7 @@ import (
 
 var (
     upgrader       = websocket.Upgrader{}
-    connectionPool = domain.ConnectionPool{}
+    connectionPool = user.ConnectionPool{}
 )
 
 func HandleMessage(ctx *gin.Context) {

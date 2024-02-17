@@ -1,6 +1,7 @@
 package domain
 
 import (
+    "chat-server/domain/message"
     "chat-server/persistence"
     "context"
     "errors"
@@ -17,7 +18,6 @@ type User struct {
     No       string `json:"no" bson:"no"`
     Email    string `json:"email" bson:"email"`
     Nickname string `json:"nickname" bson:"nickname"`
-    Presence bool   `json:"presence" bson:"presence"`
 }
 
 type Channel struct {
@@ -26,8 +26,8 @@ type Channel struct {
 }
 
 type InBox struct {
-    UserNo   string     `json:"userNo" bson:"userNo"`
-    Messages []*Message `json:"messages" bson:"messages"`
+    UserNo   string             `json:"userNo" bson:"userNo"`
+    Messages []*message.Message `json:"messages" bson:"messages"`
 }
 
 func HeartBeat(userNo string) (err error) {

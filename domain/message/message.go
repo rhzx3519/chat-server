@@ -1,4 +1,4 @@
-package domain
+package message
 
 import (
     "chat-server/domain/serialnumber"
@@ -21,6 +21,7 @@ type Message struct {
     CreatedAt   int64       `json:"createdAt" bson:"createdAt"`
     IsRead      bool        `json:"isRead" bson:"isRead"`
     MessageType MessageType `json:"messageType" bson:"messageType"`
+    ErrCode     ErrCode     `json:"errCode" bson:"errCode"`
 }
 
 func NewMessage(from, to string, content string) *Message {

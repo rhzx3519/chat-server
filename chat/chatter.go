@@ -2,6 +2,7 @@ package chat
 
 import (
     "chat-server/domain"
+    "chat-server/domain/message"
     "chat-server/network"
     "encoding/json"
     "github.com/gorilla/websocket"
@@ -48,7 +49,7 @@ func NewChatter(opts ...ChatterOpt) *Chatter {
 }
 
 func (c *Chatter) readHandler(content []byte) (err error) {
-    message := domain.NewMessage(c.user.No, "group1", string(content))
+    message := message.NewMessage(c.user.No, "group1", string(content))
     bytes, err := json.Marshal(message)
     if err != nil {
         return err

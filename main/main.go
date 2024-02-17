@@ -3,27 +3,27 @@ package main
 import (
     "chat-server/chat"
     "chat-server/controller"
-    "chat-server/domain/connectionpool"
     "chat-server/persistence"
     "fmt"
     "github.com/gin-gonic/gin"
-    "github.com/gorilla/websocket"
     "github.com/joho/godotenv"
-    "log"
+    log "github.com/sirupsen/logrus"
+
     "net/http"
     "os"
     "time"
-)
-
-var (
-    upgrader       = websocket.Upgrader{}
-    connectionPool = connectionpool.ConnectionPool{}
 )
 
 func init() {
     err := godotenv.Load()
     if err != nil {
         log.Fatal("Error loading .env file")
+    }
+
+    {
+        log.SetFormatter(&log.TextFormatter{DisableColors: false})
+        log.SetOutput(os.Stdout)
+        log.SetLevel(log.DebugLevel)
     }
 }
 

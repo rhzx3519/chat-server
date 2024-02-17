@@ -6,6 +6,7 @@ import (
     "encoding/json"
     "github.com/gin-gonic/gin"
     "github.com/gorilla/websocket"
+    log "github.com/sirupsen/logrus"
     "net/http"
 )
 
@@ -30,11 +31,13 @@ func extractForwardedUser(c *gin.Context) (domain.User, error) {
 func ServeWs(hub *chat.Hub, c *gin.Context) {
     user, err := extractForwardedUser(c)
     if err != nil {
+        log.WithError(err).Error("failed to parse user json")
         c.AbortWithStatus(http.StatusInternalServerError)
         return
     }
     conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
     if err != nil {
+        log.WithError(err).Error("failed to upgrade http connection to websocket")
         c.AbortWithStatus(http.StatusInternalServerError)
         return
     }

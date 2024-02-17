@@ -40,7 +40,9 @@ type Client struct {
     send chan []byte
 
     // handle the received message
-    readCallback func([]byte) ([]byte, error)
+    readCallback func([]byte) error
+    // handle close event
+    closeCallback func()
 }
 
 type ClientOpt func(*Client)
@@ -65,9 +67,15 @@ func WithSendBuffer(send chan []byte) ClientOpt {
     }
 }
 
-func WithReadCallback(callback func([]byte) ([]byte, error)) ClientOpt {
+func WithReadCallback(callback func([]byte) error) ClientOpt {
     return func(c *Client) {
         c.readCallback = callback
+    }
+}
+
+func WithCloseCallback(callback func() ()) ClientOpt {
+    return func(c *Client) {
+        c.closeCallback = callback
     }
 }
 
@@ -87,20 +95,21 @@ func (c *Client) Clear() {
 func (c *Client) ReadPump() {
     defer func() {
         c.conn.Close()
+        c.closeCallback()
     }()
     c.conn.SetReadLimit(maxMessageSize)
     c.conn.SetReadDeadline(time.Now().Add(pongWait))
     c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
     for {
-        _, content, err := c.conn.ReadMessage()
+        _, message, err := c.conn.ReadMessage()
         if err != nil {
             if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
                 log.Printf("error: %v", err)
             }
             break
         }
-        content = bytes.TrimSpace(bytes.Replace(content, newline, space, -1))
-        c.readCallback(content)
+        message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+        c.readCallback(message)
     }
 }
 

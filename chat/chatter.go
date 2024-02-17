@@ -22,7 +22,8 @@ func WithConn(conn *websocket.Conn) ChatterOpt {
             network.WithConn(conn),
             network.WithSendBuffer(make(chan []byte, 256)))
         c.client = client
-        network.WithReadCallback(c.Receive)(client)
+        network.WithReadCallback(c.readHandler)(client)
+        network.WithCloseCallback(c.closeHandler)(client)
     }
 }
 
@@ -46,14 +47,18 @@ func NewChatter(opts ...ChatterOpt) *Chatter {
     return c
 }
 
-func (c *Chatter) Receive(content []byte) ([]byte, error) {
+func (c *Chatter) readHandler(content []byte) (err error) {
     message := domain.NewMessage(c.user.No, "group1", string(content))
     bytes, err := json.Marshal(message)
     if err != nil {
-        return nil, err
+        return err
     }
     c.hub.broadcast <- bytes
-    return bytes, nil
+    return
+}
+
+func (c *Chatter) closeHandler() {
+    c.hub.unregister <- c
 }
 
 func (c *Chatter) Send(message []byte) {
@@ -61,15 +66,13 @@ func (c *Chatter) Send(message []byte) {
 }
 
 func (c *Chatter) Run() {
-    defer func() {
-        c.hub.unregister <- c
-    }()
     // Allow collection of memory referenced by the caller by doing all work in
     // new goroutines.
     go c.client.ReadPump()
     go c.client.WritePump()
 }
 
+// Exit execute after the hub registered the chatter
 func (c *Chatter) Exit() {
     c.client.Clear()
 }

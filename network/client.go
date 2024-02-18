@@ -6,7 +6,7 @@ package network
 
 import (
     "bytes"
-    "log"
+    log "github.com/sirupsen/logrus"
     "time"
 
     "github.com/gorilla/websocket"
@@ -40,15 +40,17 @@ type Client struct {
     send chan []byte
 
     // handle the received message
-    readCallback func([]byte) error
-    // handle close event
+    readCallback  func([]byte)
     closeCallback func()
+    Done          chan struct{}
 }
 
 type ClientOpt func(*Client)
 
 func NewClient(opts ...ClientOpt) *Client {
-    c := &Client{}
+    c := &Client{
+        Done: make(chan struct{}),
+    }
     for _, opt := range opts {
         opt(c)
     }
@@ -67,13 +69,13 @@ func WithSendBuffer(send chan []byte) ClientOpt {
     }
 }
 
-func WithReadCallback(callback func([]byte) error) ClientOpt {
+func WithReadCallback(callback func([]byte)) ClientOpt {
     return func(c *Client) {
         c.readCallback = callback
     }
 }
 
-func WithCloseCallback(callback func() ()) ClientOpt {
+func WithCloseCallback(callback func()) ClientOpt {
     return func(c *Client) {
         c.closeCallback = callback
     }
@@ -81,10 +83,6 @@ func WithCloseCallback(callback func() ()) ClientOpt {
 
 func (c *Client) Buffer() chan []byte {
     return c.send
-}
-
-func (c *Client) Clear() {
-    close(c.send)
 }
 
 // ReadPump pumps messages from the websocket connection to the hub.
@@ -104,7 +102,7 @@ func (c *Client) ReadPump() {
         _, message, err := c.conn.ReadMessage()
         if err != nil {
             if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-                log.Printf("error: %v", err)
+                log.WithError(err).Error()
             }
             break
         }
@@ -123,9 +121,12 @@ func (c *Client) WritePump() {
     defer func() {
         ticker.Stop()
         c.conn.Close()
+        close(c.send)
     }()
     for {
         select {
+        case <-c.Done:
+            c.conn.Close()
         case message, ok := <-c.send:
             c.conn.SetWriteDeadline(time.Now().Add(writeWait))
             if !ok {

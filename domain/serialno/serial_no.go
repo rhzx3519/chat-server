@@ -1,4 +1,4 @@
-package serialnumber
+package serialno
 
 import (
     "chat-server/persistence"
@@ -10,7 +10,7 @@ import (
 )
 
 const (
-    collectionName = "SerialNumbers"
+    collectionName = "serialnos"
 )
 
 type SerialNo struct {

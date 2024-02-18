@@ -2,16 +2,24 @@ package chat
 
 import (
     "chat-server/domain"
-    "chat-server/domain/message"
+    "chat-server/domain/msg"
     "chat-server/network"
     "encoding/json"
     "github.com/gorilla/websocket"
+)
+
+type ChatterStatus int
+
+const (
+    ACTIVE ChatterStatus = iota
+    OFFLINE
 )
 
 type Chatter struct {
     client *network.Client
     hub    *Hub
     user   *domain.User
+    Status ChatterStatus
 }
 
 type ChatterOpt func(c *Chatter)
@@ -41,29 +49,28 @@ func WithHub(hub *Hub) ChatterOpt {
 }
 
 func NewChatter(opts ...ChatterOpt) *Chatter {
-    c := &Chatter{}
+    c := &Chatter{Status: ACTIVE}
     for _, opt := range opts {
         opt(c)
     }
     return c
 }
 
-func (c *Chatter) readHandler(content []byte) (err error) {
-    message := message.NewMessage(c.user.No, "group1", string(content))
-    bytes, err := json.Marshal(message)
-    if err != nil {
-        return err
-    }
-    c.hub.broadcast <- bytes
-    return
+func (c *Chatter) readHandler(content []byte) {
+    message := msg.NewMessage(content)
+    message.From = c.user.No
+    message.To = ROOM_NO
+    message.MsgCode = msg.COVERSATION
+    c.hub.broadcast <- message
 }
 
 func (c *Chatter) closeHandler() {
     c.hub.unregister <- c
 }
 
-func (c *Chatter) Send(message []byte) {
-    c.client.Buffer() <- message
+func (c *Chatter) Send(message *msg.Message) {
+    bytes, _ := json.Marshal(message)
+    c.client.Buffer() <- bytes
 }
 
 func (c *Chatter) Run() {
@@ -71,9 +78,4 @@ func (c *Chatter) Run() {
     // new goroutines.
     go c.client.ReadPump()
     go c.client.WritePump()
-}
-
-// Exit execute after the hub registered the chatter
-func (c *Chatter) Exit() {
-    c.client.Clear()
 }

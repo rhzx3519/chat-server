@@ -29,16 +29,15 @@ func main() {
     signal.Notify(interrupt, os.Interrupt)
 
     //host := "ec2-3-27-86-30.ap-southeast-2.compute.amazonaws.com:443"
-    host := fmt.Sprintf("127.0.0.1:%v", os.Getenv("PORT"))
+    host := fmt.Sprintf("127.0.0.1:%v", 443)
     var addr = flag.String("addr", host, "http service address")
-    u := url.URL{Scheme: "ws", Host: *addr, Path: "/v1/ws/chat"}
+    u := url.URL{Scheme: "wss", Host: *addr, Path: "/api/chat/v1/ws/chat"}
     log.Printf("connecting to %s", u.String())
 
     dialer := *websocket.DefaultDialer
     dialer.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
     h := http.Header{}
-    h.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxvdUBnbWFpbC5jb20iLCJleHAiOjE3MDgyNDMxMjksIm5pY2tuYW1lIjoibG91Iiwibm8iOiI1MzQ5NTZkZS03OGFmLTQ0YjUtYmRmMS00NWFhNTA5NDg2MTgifQ.N5r7OihwoOjcTDCFtTSQ28BeLvgCifYOoa_gQVWfFAQ")
-    h.Add("X-Forwarded-User", "{\"email\":\"lou@gmail.com\",\"nickname\":\"lou\",\"no\": \"534956de-78af-44b5-bdf1-45aa50948618\"}")
+    h.Add("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxvdUBnbWFpbC5jb20iLCJleHAiOjE3MDgzMzU1ODgsIm5pY2tuYW1lIjoibG91Iiwibm8iOiI1MzQ5NTZkZS03OGFmLTQ0YjUtYmRmMS00NWFhNTA5NDg2MTgifQ.KQUimVOFghoxCDwSRujZ0IUnfsI6W8zDVfApLiyL0yQ")
 
     c, _, err := dialer.Dial(u.String(), h)
     if err != nil {
@@ -60,7 +59,7 @@ func main() {
         }
     }()
 
-    ticker := time.NewTicker(time.Second * 30)
+    ticker := time.NewTicker(time.Second * 5)
     defer ticker.Stop()
 
     for {

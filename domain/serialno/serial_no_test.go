@@ -1,4 +1,4 @@
-package serialnumber
+package serialno
 
 import (
     "chat-server/persistence"

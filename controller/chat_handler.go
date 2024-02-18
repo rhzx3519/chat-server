@@ -49,6 +49,4 @@ func ServeWs(hub *chat.Hub, c *gin.Context) {
     )
 
     hub.Register(chatter)
-
-    chatter.Run()
 }

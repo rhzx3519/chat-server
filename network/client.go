@@ -51,6 +51,7 @@ func NewClient(opts ...ClientOpt) *Client {
     c := &Client{
         Done: make(chan struct{}),
     }
+
     for _, opt := range opts {
         opt(c)
     }

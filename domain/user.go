@@ -13,4 +13,5 @@ type User struct {
 	No       string             `json:"no" bson:"no"`
 	Email    string             `json:"email" bson:"email"`
 	Nickname string             `json:"nickname" bson:"nickname"`
+	Fullname string             `json:"fullname"bson:"fullname"`
 }

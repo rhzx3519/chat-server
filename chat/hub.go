@@ -81,8 +81,8 @@ func (h *Hub) packageRoomInfo() *msg.Message {
 
 func (h *Hub) doBroadcast(message *msg.Message) {
 	var err error
-	if message.MsgCode == msg.PRIVATE_COVERSATION {
-		message.SerialNo, err = serialno.NextSerialNo(message.From, message.To)
+	if message.MsgCode == msg.GROUP_CONVERSATION {
+		message.SerialNo, err = serialno.NextSerialNo(message.From.No, message.To.(*domain.Channel).Name)
 		if err != nil {
 			log.WithError(err).Error("failed to generate serial no.")
 		}

@@ -6,7 +6,7 @@ const CollChannel = "channels"
 
 type Channel struct {
 	ID        primitive.ObjectID `bson:"_id"`
-	Owner     string             `bson:"owner,omitempty"`
-	Name      string             `bson:"name,omitempty"`
-	MaxMember int                `bson:"max_member,omitempty"`
+	Owner     string             `json:"owner"bson:"owner,omitempty"`
+	Name      string             `json:"name"bson:"name,omitempty"`
+	MaxMember int                `json:"max_member,omitempty"bson:"max_member,omitempty"`
 }

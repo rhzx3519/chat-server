@@ -26,7 +26,6 @@ type ChatterOpt func(c *Chatter)
 
 func WithConn(conn *websocket.Conn) ChatterOpt {
 	return func(c *Chatter) {
-		//client := chat.NewClient(hub, conn, make(chan []byte, 256))
 		client := network.NewClient(
 			network.WithConn(conn),
 			network.WithSendBuffer(make(chan []byte, 256)))
@@ -58,10 +57,12 @@ func NewChatter(opts ...ChatterOpt) *Chatter {
 
 func (c *Chatter) readHandler(content []byte) {
 	message := msg.NewMessage(content)
-	message.From = c.user.No
-	message.FromNickname = c.user.Nickname
-	message.To = ROOM_NO
-	message.MsgCode = msg.PRIVATE_COVERSATION
+	message.From = c.user
+	message.To = &domain.Channel{
+		Name:      ROOM_NO,
+		MaxMember: 10,
+	}
+	message.MsgCode = msg.GROUP_CONVERSATION
 	c.hub.broadcast <- message
 }
 

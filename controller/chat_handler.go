@@ -34,6 +34,7 @@ func extractForwardedUser(c *gin.Context) (*domain.User, error) {
 // serveWs handles websocket requests from the peer.
 func ServeWs(hub *chat.Hub, c *gin.Context) {
 	user, err := extractForwardedUser(c)
+
 	if err != nil {
 		log.WithError(err).Error("failed to parse user json")
 		c.AbortWithStatus(http.StatusInternalServerError)

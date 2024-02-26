@@ -3,12 +3,13 @@ package msg
 type ErrCode int
 
 const (
-    DISCONNECTED = 10
+	DISCONNECTED = 10
 )
 
 type MsgCode int
 
 const (
-    COVERSATION MsgCode = iota
-    ROOM_INFO
+	PRIVATE_COVERSATION MsgCode = iota
+	GROUP_CONVERSATION
+	GROUP_INFO
 )

@@ -54,7 +54,9 @@ func (h *Hub) Run() {
 				log.Debugf("%v joined chatroom", chatter.user.Nickname)
 				h.chatters[chatter] = true
 				chatter.Run()
-				h.doBroadcast(h.packageRoomInfo())
+				for _, m := range msg.List() {
+					chatter.Send(m)
+				}
 			}
 		case chatter := <-h.unregister:
 			if _, ok := h.chatters[chatter]; ok {
@@ -82,13 +84,13 @@ func (h *Hub) packageRoomInfo() *msg.Message {
 func (h *Hub) doBroadcast(message *msg.Message) {
 	var err error
 	if message.MsgCode == msg.GROUP_CONVERSATION {
-		message.SerialNo, err = serialno.NextSerialNo(message.From.No, message.To.(*domain.Channel).Name)
+		message.SerialNo, err = serialno.NextSerialNo(message.From.No, message.To.Name)
+		msg.Save(message)
 		if err != nil {
 			log.WithError(err).Error("failed to generate serial no.")
 		}
 	}
 
-	msg.Save(message)
 	for chatter := range h.chatters {
 		if chatter.Status == ACTIVE {
 			chatter.Send(message)

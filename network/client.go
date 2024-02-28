@@ -108,7 +108,8 @@ func (c *Client) ReadPump() {
 			break
 		}
 
-		message = bytes.Trim(bytes.TrimSpace(message), "\"")
+		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		message = bytes.Trim(message, "\"")
 		c.readCallback(message)
 	}
 }
@@ -144,11 +145,11 @@ func (c *Client) WritePump() {
 			w.Write(message)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
+			//n := len(c.send)
+			//for i := 0; i < n; i++ {
+			//	w.Write(newline)
+			//	w.Write(<-c.send)
+			//}
 
 			if err := w.Close(); err != nil {
 				return
